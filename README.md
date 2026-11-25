@@ -1,6 +1,6 @@
 # Angry Judge: The Short Rant Contest
 
-Deterministic Python entrypoint that writes a short rant (397 characters) as UTF-8 to `/output/entry.txt`.
+Deterministic Python entrypoint (`python3 -P -s main.py`) that writes a short English rant (at most 400 characters) as UTF-8 to `/output/entry.txt`.
 
 ## Run
 

@@ -10,13 +10,30 @@ OUTPUT_ENV_VAR = "OUTPUT_PATH"
 MAX_CHARACTERS = 400
 
 RANT = (
-    "A $12 power strip has no business packing a blue LED bright enough to "
-    "guide barges through fog. You're charging a phone, not staffing a "
-    "lighthouse. Every cheap gadget fires a cobalt pinhole laser built to "
-    "pierce closed eyelids at 2 AM. Now I crawl around my bedroom slapping "
-    "electrical tape over routers and humidifiers like a cat burglar blinding "
-    "sensors, just to darken a room with no lights on."
+    "Why install a giant bathroom sink and mount a faucet so short the water "
+    "lands half an inch from the back wall? Ninety percent of the bowl sits "
+    "bone dry while I scrape my knuckles against the porcelain just to rinse "
+    "one thumb. You built a whole basin and forced me to wash my hands in "
+    "the margin."
 )
+
+
+def validate_rant(text: str) -> str:
+    """Ensure the rant satisfies the contest UTF-8, whitespace, and length rules."""
+    if not text.strip():
+        raise ValueError("Rant must not be empty or whitespace-only.")
+    if text != text.strip():
+        raise ValueError("Rant must not have leading or trailing whitespace.")
+    if text.startswith("\ufeff") or "\r" in text:
+        raise ValueError("Rant must not contain a BOM or carriage returns.")
+    try:
+        text.encode("utf-8", errors="strict")
+    except UnicodeEncodeError as exc:
+        raise ValueError("Rant must be valid UTF-8 text.") from exc
+    utf16_units = len(text.encode("utf-16-le")) // 2
+    if len(text) > MAX_CHARACTERS or utf16_units > MAX_CHARACTERS:
+        raise ValueError(f"Rant must be at most {MAX_CHARACTERS} characters.")
+    return text
 
 
 def resolve_output_path() -> Path:
@@ -29,14 +46,10 @@ def resolve_output_path() -> Path:
 
 def write_entry(output_path: Path | None = None) -> Path:
     """Write the validated rant as UTF-8 to the output path."""
-    if not RANT.strip() or not (1 <= len(RANT) <= MAX_CHARACTERS):
-        raise ValueError(
-            f"Rant must be 1 to {MAX_CHARACTERS} non-whitespace characters."
-        )
-
+    validated = validate_rant(RANT)
     target = output_path if output_path is not None else resolve_output_path()
     target.parent.mkdir(parents=True, exist_ok=True)
-    target.write_text(RANT, encoding="utf-8", newline="")
+    target.write_text(validated, encoding="utf-8", newline="")
     return target
 
 
